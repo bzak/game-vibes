@@ -26,6 +26,84 @@ pygame.display.set_caption("🚀 Statek Kosmiczny kontra Ufoludki! 🛸")
 # Zegar do kontroli szybkości gry
 zegar = pygame.time.Clock()
 
+# Ładowanie grafik statków
+def laduj_grafiki_statkow():
+    """Ładuje grafiki statków i skaluje je do odpowiedniego rozmiaru"""
+    grafiki = {}
+    try:
+        # Próbujemy załadować wygenerowane grafiki z folderu obrazki
+        nazwy_plikow = {
+            'podstawowy': 'obrazki/statek-podstawowy-srebrny-v4.png',
+            'szybki': 'obrazki/statek-szybki-zloty-v2.png',
+            'podwojny': 'obrazki/statek-podwojny-fioletowy-v2.png',
+            'pancerny': 'obrazki/statek-pancerny-ciemny-v2.png'
+        }
+        
+        for typ, plik in nazwy_plikow.items():
+            # Ładujemy obrazek
+            obrazek = pygame.image.load(plik)
+            # Konwertujemy do formatu z alpha (przezroczystość)
+            obrazek = obrazek.convert_alpha()
+            # Ustawiamy przezroczystość na podstawie pierwszego piksela (lewy górny róg)
+            kolor_tla = obrazek.get_at((0, 0))
+            obrazek.set_colorkey(kolor_tla)
+            # Skalujemy do odpowiedniego rozmiaru
+            grafiki[typ] = pygame.transform.scale(obrazek, (60, 40))
+            
+        print("✅ Grafiki statków załadowane!")
+        return grafiki
+    except Exception as e:
+        print(f"⚠️ Nie można załadować grafik statków: {e}")
+        print("Używam domyślnego rysowania geometrycznego")
+        return None
+
+# Ładowanie grafik ufoludków
+def laduj_grafiki_ufoludk():
+    """Ładuje grafiki ufoludków i skaluje je do odpowiedniego rozmiaru"""
+    grafiki = {}
+    try:
+        # Próbujemy załadować wygenerowane grafiki ufoludków z folderu obrazki (bez tła)
+        nazwy_plikow = {
+            'maly': 'obrazki/ufo-maly-zielony-bez-tla.png',
+            'sredni': 'obrazki/ufo-sredni-czerwony-bez-tla.png', 
+            'duzy': 'obrazki/ufo-duzy-pomaranczowy-bez-tla.png',
+            'szybki': 'obrazki/ufo-szybki-magenta-bez-tla.png'
+        }
+        
+        for typ, plik in nazwy_plikow.items():
+            try:
+                # Ładujemy obrazek
+                obrazek = pygame.image.load(plik)
+                # Konwertujemy do formatu z alpha (przezroczystość)
+                obrazek = obrazek.convert_alpha()
+                
+                # Skalujemy do odpowiedniego rozmiaru
+                if typ == 'maly':
+                    grafiki[typ] = pygame.transform.scale(obrazek, (40, 25))
+                elif typ == 'sredni':
+                    grafiki[typ] = pygame.transform.scale(obrazek, (60, 35))
+                elif typ == 'duzy':
+                    grafiki[typ] = pygame.transform.scale(obrazek, (80, 50))
+                elif typ == 'szybki':
+                    grafiki[typ] = pygame.transform.scale(obrazek, (35, 20))
+                    
+            except Exception as e:
+                print(f"⚠️ Nie można załadować grafiki ufoludka {typ}: {e}")
+                
+        if grafiki:
+            print(f"✅ Grafiki ufoludków załadowane! ({len(grafiki)} typów)")
+        else:
+            print("⚠️ Nie załadowano żadnych grafik ufoludków")
+        return grafiki
+    except Exception as e:
+        print(f"⚠️ Nie można załadować grafik ufoludków: {e}")
+        print("Używam domyślnego rysowania geometrycznego")
+        return None
+
+# Ładujemy grafiki statków i ufoludków
+grafiki_statkow = laduj_grafiki_statkow()
+grafiki_ufoludk = laduj_grafiki_ufoludk()
+
 # Funkcje do tworzenia prostych dźwięków
 def stworz_prosty_dzwiek(czestotliwosc, czas_ms):
     """Tworzy prosty dźwięk o danej częstotliwości"""
@@ -166,67 +244,50 @@ class Statek:
             self.podwojne_strzaly = False
         
     def rysuj(self, okno):
-        # Korpus statku (trójkąt w kolorze statku)
-        punkty = [
-            (self.x, self.y),  # czubek
-            (self.x - self.szerokosc//2, self.y + self.wysokosc),  # lewy dolny
-            (self.x + self.szerokosc//2, self.y + self.wysokosc)   # prawy dolny
-        ]
-        pygame.draw.polygon(okno, self.kolor_glowny, punkty)
-        
-        # Silniki (w kolorze statku)
-        odleglosc_silnikow = 15 if self.typ != "podwojny" else 20
-        pygame.draw.circle(okno, self.kolor_silniki, (self.x - odleglosc_silnikow, self.y + self.wysokosc + 5), 8)
-        pygame.draw.circle(okno, self.kolor_silniki, (self.x + odleglosc_silnikow, self.y + self.wysokosc + 5), 8)
-        
-        # Dodatkowe silniki dla statku podwójnego
-        if self.typ == "podwojny":
-            pygame.draw.circle(okno, self.kolor_silniki, (self.x - 35, self.y + self.wysokosc + 3), 6)
-            pygame.draw.circle(okno, self.kolor_silniki, (self.x + 35, self.y + self.wysokosc + 3), 6)
-        
-        # Kokpit (żółte okienko)
-        pygame.draw.circle(okno, ZOLTY, (self.x, self.y + 15), 8)
-        
-        # Specjalne oznaczenia dla różnych typów
-        if self.typ == "szybki":
-            # Paski szybkości
-            for i in range(3):
-                pygame.draw.line(okno, BIALY, 
-                               (self.x - 10 + i * 10, self.y + 25), 
-                               (self.x - 10 + i * 10, self.y + 30), 2)
-        elif self.typ == "pancerny":
-            # Pancerz
-            pygame.draw.rect(okno, BIALY, (self.x - 15, self.y + 20, 30, 5))
-        elif self.typ == "stealth":
-            # Niewidzialne linie stealth
-            for i in range(2):
-                pygame.draw.line(okno, (100, 100, 100), 
-                               (self.x - 20 + i * 40, self.y + 10), 
-                               (self.x - 10 + i * 20, self.y + 35), 1)
-        elif self.typ == "rakietowy":
-            # Rakiety po bokach
-            pygame.draw.rect(okno, CZERWONY, (self.x - 25, self.y + 15, 8, 20))
-            pygame.draw.rect(okno, CZERWONY, (self.x + 17, self.y + 15, 8, 20))
-        elif self.typ == "plazma":
-            # Plazma w środku
-            pygame.draw.circle(okno, (0, 255, 255), (self.x, self.y + 20), 6)
-            pygame.draw.circle(okno, BIALY, (self.x, self.y + 20), 3)
-        elif self.typ == "quantum":
-            # Quantum efekt - migające kropki
-            import random
-            for i in range(4):
-                if random.randint(1, 3) == 1:  # Losowe miganie
-                    x_pos = self.x - 15 + i * 10
-                    pygame.draw.circle(okno, (255, 255, 255), (x_pos, self.y + 25), 2)
-        elif self.typ == "alien":
-            # Alien wzory
-            pygame.draw.polygon(okno, (255, 255, 0), 
-                              [(self.x, self.y + 10), (self.x - 8, self.y + 25), (self.x + 8, self.y + 25)])
-        elif self.typ == "crystal":
-            # Kryształowe wzory
-            pygame.draw.polygon(okno, BIALY, 
-                              [(self.x, self.y + 15), (self.x - 6, self.y + 22), 
-                               (self.x, self.y + 29), (self.x + 6, self.y + 22)])
+        # Jeśli mamy załadowane grafiki, używamy ich
+        if grafiki_statkow and self.typ in grafiki_statkow:
+            grafika = grafiki_statkow[self.typ]
+            # Centrujemy grafikę na pozycji statku
+            rect = grafika.get_rect()
+            rect.centerx = self.x
+            rect.centery = self.y + self.wysokosc // 2
+            okno.blit(grafika, rect)
+        else:
+            # Fallback - rysowanie geometryczne jak wcześniej
+            # Korpus statku (trójkąt w kolorze statku)
+            punkty = [
+                (self.x, self.y),  # czubek
+                (self.x - self.szerokosc//2, self.y + self.wysokosc),  # lewy dolny
+                (self.x + self.szerokosc//2, self.y + self.wysokosc)   # prawy dolny
+            ]
+            pygame.draw.polygon(okno, self.kolor_glowny, punkty)
+            
+            # Silniki (w kolorze statku)
+            odleglosc_silnikow = 15 if self.typ != "podwojny" else 20
+            pygame.draw.circle(okno, self.kolor_silniki, (self.x - odleglosc_silnikow, self.y + self.wysokosc + 5), 8)
+            pygame.draw.circle(okno, self.kolor_silniki, (self.x + odleglosc_silnikow, self.y + self.wysokosc + 5), 8)
+            
+            # Dodatkowe silniki dla statku podwójnego
+            if self.typ == "podwojny":
+                pygame.draw.circle(okno, self.kolor_silniki, (self.x - 35, self.y + self.wysokosc + 3), 6)
+                pygame.draw.circle(okno, self.kolor_silniki, (self.x + 35, self.y + self.wysokosc + 3), 6)
+            
+            # Kokpit (żółte okienko)
+            pygame.draw.circle(okno, ZOLTY, (self.x, self.y + 15), 8)
+            
+            # Specjalne oznaczenia dla różnych typów
+            if self.typ == "szybki":
+                # Paski szybkości
+                for i in range(3):
+                    pygame.draw.line(okno, BIALY, 
+                                   (self.x - 10 + i * 10, self.y + 25), 
+                                   (self.x - 10 + i * 10, self.y + 30), 2)
+            elif self.typ == "pancerny":
+                # Pancerz (linie na korpusie)
+                for i in range(2):
+                    pygame.draw.line(okno, BIALY, 
+                                   (self.x - 15, self.y + 10 + i * 8), 
+                                   (self.x + 15, self.y + 10 + i * 8), 2)
     
     def ruch(self, klawisze):
         # Sterowanie strzałkami
@@ -239,11 +300,17 @@ class Statek:
         if klawisze[pygame.K_DOWN] and self.y < WYSOKOSC - self.wysokosc - 20:
             self.y += self.predkosc
             
-        # Sterowanie klawiszami A i D
+        # Sterowanie klawiszami A i D (lewo/prawo)
         if klawisze[pygame.K_a] and self.x > self.szerokosc//2:
             self.x -= self.predkosc
         if klawisze[pygame.K_d] and self.x < SZEROKOSC - self.szerokosc//2:
             self.x += self.predkosc
+            
+        # Sterowanie klawiszami W i S (góra/dół)
+        if klawisze[pygame.K_w] and self.y > 50:
+            self.y -= self.predkosc
+        if klawisze[pygame.K_s] and self.y < WYSOKOSC - self.wysokosc - 20:
+            self.y += self.predkosc
 
 class Pocisk:
     def __init__(self, x, y):
@@ -370,25 +437,35 @@ class Ufoludek:
         return self.zycia <= 0
         
     def rysuj(self, okno):
-        # Główna część UFO (owalna)
-        pygame.draw.ellipse(okno, self.kolor, 
-                          (self.x - self.szerokosc//2, self.y - self.wysokosc//2, 
-                           self.szerokosc, self.wysokosc))
-        
-        # Kopuła (mniejsza elipsa na górze)
-        rozmiar_kopuly = min(30, self.szerokosc//2)
-        pygame.draw.ellipse(okno, SREBRNY, 
-                          (self.x - rozmiar_kopuly//2, self.y - self.wysokosc//2 - 8, 
-                           rozmiar_kopuly, 16))
-        
-        # Światełka (więcej dla większych UFO)
-        liczba_swiatel = max(3, self.szerokosc // 15)
-        for i in range(liczba_swiatel):
-            kolor_swiatla = random.choice([ZOLTY, BIALY, NIEBIESKI])
-            pos_x = self.x - (liczba_swiatel * 7) // 2 + i * 14
-            pygame.draw.circle(okno, kolor_swiatla, (pos_x, self.y), 3)
+        # Jeśli mamy załadowane grafiki, używamy ich
+        if grafiki_ufoludk and self.typ in grafiki_ufoludk:
+            grafika = grafiki_ufoludk[self.typ]
+            # Centrujemy grafikę na pozycji ufoludka
+            rect = grafika.get_rect()
+            rect.centerx = self.x
+            rect.centery = self.y
+            okno.blit(grafika, rect)
+        else:
+            # Fallback - rysowanie geometryczne jak wcześniej
+            # Główna część UFO (owalna)
+            pygame.draw.ellipse(okno, self.kolor, 
+                              (self.x - self.szerokosc//2, self.y - self.wysokosc//2, 
+                               self.szerokosc, self.wysokosc))
             
-        # Pokazujemy życia dla trudniejszych przeciwników
+            # Kopuła (mniejsza elipsa na górze)
+            rozmiar_kopuly = min(30, self.szerokosc//2)
+            pygame.draw.ellipse(okno, SREBRNY, 
+                              (self.x - rozmiar_kopuly//2, self.y - self.wysokosc//2 - 8, 
+                               rozmiar_kopuly, 16))
+            
+            # Światełka (więcej dla większych UFO)
+            liczba_swiatel = max(3, self.szerokosc // 15)
+            for i in range(liczba_swiatel):
+                kolor_swiatla = random.choice([ZOLTY, BIALY, NIEBIESKI])
+                pos_x = self.x - (liczba_swiatel * 7) // 2 + i * 14
+                pygame.draw.circle(okno, kolor_swiatla, (pos_x, self.y), 3)
+                
+        # Pokazujemy życia dla trudniejszych przeciwników (zawsze)
         if self.zycia > 1:
             for i in range(self.zycia):
                 pygame.draw.circle(okno, CZERWONY, 
