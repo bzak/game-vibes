@@ -327,6 +327,22 @@ class Pocisk:
         # Dodajemy błysk
         pygame.draw.circle(okno, BIALY, (self.x, self.y), 2)
 
+class PociskUFO:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.predkosc = 6  # Wolniejsze niż pociski gracza
+        self.rozmiar = 4
+        
+    def ruch(self):
+        self.y += self.predkosc  # Leci w dół (w kierunku gracza)
+        
+    def rysuj(self, okno):
+        # Czerwone pociski UFO
+        pygame.draw.circle(okno, CZERWONY, (self.x, self.y), self.rozmiar)
+        # Dodajemy pomarańczowy błysk
+        pygame.draw.circle(okno, (255, 100, 0), (self.x, self.y), 2)
+
 class Eksplozja:
     def __init__(self, x, y, rozmiar=1):
         self.x = x
@@ -412,6 +428,7 @@ class Ufoludek:
             self.kolor = (255, 100, 0)  # Pomarańczowy
             self.punkty = 50
             self.zycia = 3
+            self.ostatni_strzal = 0  # Licznik do kontroli częstotliwości strzałów
         elif typ == "szybki":
             self.szerokosc = 35
             self.wysokosc = 20
@@ -430,6 +447,17 @@ class Ufoludek:
                 self.x = 30
             elif self.x > SZEROKOSC - 30:
                 self.x = SZEROKOSC - 30
+                
+        # Duże ufoludki liczą czas do następnego strzału
+        if self.typ == "duzy":
+            self.ostatni_strzal += 1
+    
+    def moze_strzelac(self):
+        """Sprawdza czy duży ufoludek może strzelać"""
+        if self.typ == "duzy" and self.ostatni_strzal > 60:  # Strzela co sekundę (60 FPS)
+            self.ostatni_strzal = 0
+            return True
+        return False
         
     def trafiony(self):
         """Zmniejsza życia ufoludka, zwraca True jeśli zniszczony"""
@@ -818,6 +846,9 @@ def main():
     # Tworzenie obiektów gry z wybranym statkiem
     statek, pociski, ufoludki, eksplozje, punkty, zycia_statku, game_over = resetuj_gre(wybrany_statek)
     
+    # Lista pocisków UFO
+    pociski_ufo = []
+    
     # Tworzymy gwiazdy w tle
     gwiazdy = [(random.randint(0, SZEROKOSC), random.randint(0, WYSOKOSC)) for _ in range(100)]
     
@@ -898,8 +929,21 @@ def main():
         # Ruch ufoludków
         for ufoludek in ufoludki[:]:
             ufoludek.ruch()
+            
+            # Duże ufoludki strzelają do gracza
+            if ufoludek.moze_strzelac() and ufoludek.y > 50 and ufoludek.y < WYSOKOSC - 100:
+                nowy_pocisk_ufo = PociskUFO(ufoludek.x, ufoludek.y + ufoludek.wysokosc//2)
+                pociski_ufo.append(nowy_pocisk_ufo)
+                print("💥 Duży UFO strzela!")
+            
             if ufoludek.y > WYSOKOSC:  # Ufoludek wyleciał poza ekran
                 ufoludki.remove(ufoludek)
+        
+        # Ruch pocisków UFO
+        for pocisk_ufo in pociski_ufo[:]:
+            pocisk_ufo.ruch()
+            if pocisk_ufo.y > WYSOKOSC:  # Pocisk UFO wyleciał poza ekran
+                pociski_ufo.remove(pocisk_ufo)
         
         # Aktualizujemy eksplozje
         for eksplozja in eksplozje[:]:
@@ -953,6 +997,39 @@ def main():
                             print(f"💥 Trafienie! (brak dźwięku) {ufoludek.typ} UFO ma {ufoludek.zycia} żyć!")
                     break
                     
+        # Sprawdzanie kolizji pocisków UFO ze statkiem gracza
+        for pocisk_ufo in pociski_ufo[:]:
+            odleglosc_x = abs(pocisk_ufo.x - statek.x)
+            odleglosc_y = abs(pocisk_ufo.y - statek.y)
+            
+            if odleglosc_x < 30 and odleglosc_y < 25:  # Kolizja pocisku UFO ze statkiem
+                # Tworzymy eksplozję w miejscu trafienia
+                nowa_eksplozja = Eksplozja(pocisk_ufo.x, pocisk_ufo.y, 1.5)
+                eksplozje.append(nowa_eksplozja)
+                
+                pociski_ufo.remove(pocisk_ufo)
+                zycia_statku -= 1
+                
+                # Odtwarzamy dźwięk trafienia
+                if dzwiek_kolizja:
+                    try:
+                        dzwiek_kolizja.play()
+                        print(f"🔴 Trafiony przez UFO! Zostało Ci {zycia_statku} żyć!")
+                    except:
+                        print(f"🔴 Trafiony przez UFO! (bez dźwięku) Zostało Ci {zycia_statku} żyć!")
+                else:
+                    print(f"🔴 Trafiony przez UFO! (brak dźwięku) Zostało Ci {zycia_statku} żyć!")
+                
+                if zycia_statku <= 0:
+                    # Zapisujemy punkty do całkowitych punktów gracza
+                    calkowite_punkty, posiadane_statki = wczytaj_dane_gracza()
+                    calkowite_punkty += punkty
+                    zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                    
+                    print(f"🚀💥 KONIEC GRY! Zdobyłeś {punkty} punktów!")
+                    game_over = True
+                break
+        
         # Sprawdzanie kolizji ufoludek-statek
         for ufoludek in ufoludki[:]:
             odleglosc_x = abs(statek.x - ufoludek.x)
@@ -1010,6 +1087,10 @@ def main():
         # Rysujemy pociski
         for pocisk in pociski:
             pocisk.rysuj(okno)
+        
+        # Rysujemy pociski UFO
+        for pocisk_ufo in pociski_ufo:
+            pocisk_ufo.rysuj(okno)
         
         # Rysujemy ufoludki
         for ufoludek in ufoludki:
