@@ -122,6 +122,48 @@ class Statek:
             self.kolor_glowny = (64, 64, 64)  # Ciemny szary
             self.kolor_silniki = CZERWONY
             self.podwojne_strzaly = False
+        elif typ == "stealth":
+            self.szerokosc = 45
+            self.wysokosc = 30
+            self.predkosc = 9
+            self.kolor_glowny = (25, 25, 25)  # Prawie czarny
+            self.kolor_silniki = (0, 255, 255)  # Cyjan
+            self.podwojne_strzaly = False
+        elif typ == "rakietowy":
+            self.szerokosc = 65
+            self.wysokosc = 40
+            self.predkosc = 7
+            self.kolor_glowny = (255, 69, 0)  # Czerwono-pomarańczowy
+            self.kolor_silniki = ZOLTY
+            self.podwojne_strzaly = True  # Rakiety!
+        elif typ == "plazma":
+            self.szerokosc = 55
+            self.wysokosc = 35
+            self.predkosc = 8
+            self.kolor_glowny = (0, 255, 127)  # Zielono-niebieski
+            self.kolor_silniki = (255, 20, 147)  # Różowy
+            self.podwojne_strzaly = False
+        elif typ == "quantum":
+            self.szerokosc = 75
+            self.wysokosc = 45
+            self.predkosc = 6
+            self.kolor_glowny = (138, 43, 226)  # Fioletowy
+            self.kolor_silniki = (255, 215, 0)  # Złoty
+            self.podwojne_strzaly = True
+        elif typ == "alien":
+            self.szerokosc = 90
+            self.wysokosc = 55
+            self.predkosc = 4
+            self.kolor_glowny = (50, 205, 50)  # Zielony
+            self.kolor_silniki = (255, 0, 255)  # Magenta
+            self.podwojne_strzaly = True
+        elif typ == "crystal":
+            self.szerokosc = 40
+            self.wysokosc = 25
+            self.predkosc = 12
+            self.kolor_glowny = (173, 216, 230)  # Jasnoniebieski
+            self.kolor_silniki = BIALY
+            self.podwojne_strzaly = False
         
     def rysuj(self, okno):
         # Korpus statku (trójkąt w kolorze statku)
@@ -155,8 +197,39 @@ class Statek:
         elif self.typ == "pancerny":
             # Pancerz
             pygame.draw.rect(okno, BIALY, (self.x - 15, self.y + 20, 30, 5))
+        elif self.typ == "stealth":
+            # Niewidzialne linie stealth
+            for i in range(2):
+                pygame.draw.line(okno, (100, 100, 100), 
+                               (self.x - 20 + i * 40, self.y + 10), 
+                               (self.x - 10 + i * 20, self.y + 35), 1)
+        elif self.typ == "rakietowy":
+            # Rakiety po bokach
+            pygame.draw.rect(okno, CZERWONY, (self.x - 25, self.y + 15, 8, 20))
+            pygame.draw.rect(okno, CZERWONY, (self.x + 17, self.y + 15, 8, 20))
+        elif self.typ == "plazma":
+            # Plazma w środku
+            pygame.draw.circle(okno, (0, 255, 255), (self.x, self.y + 20), 6)
+            pygame.draw.circle(okno, BIALY, (self.x, self.y + 20), 3)
+        elif self.typ == "quantum":
+            # Quantum efekt - migające kropki
+            import random
+            for i in range(4):
+                if random.randint(1, 3) == 1:  # Losowe miganie
+                    x_pos = self.x - 15 + i * 10
+                    pygame.draw.circle(okno, (255, 255, 255), (x_pos, self.y + 25), 2)
+        elif self.typ == "alien":
+            # Alien wzory
+            pygame.draw.polygon(okno, (255, 255, 0), 
+                              [(self.x, self.y + 10), (self.x - 8, self.y + 25), (self.x + 8, self.y + 25)])
+        elif self.typ == "crystal":
+            # Kryształowe wzory
+            pygame.draw.polygon(okno, BIALY, 
+                              [(self.x, self.y + 15), (self.x - 6, self.y + 22), 
+                               (self.x, self.y + 29), (self.x + 6, self.y + 22)])
     
     def ruch(self, klawisze):
+        # Sterowanie strzałkami
         if klawisze[pygame.K_LEFT] and self.x > self.szerokosc//2:
             self.x -= self.predkosc
         if klawisze[pygame.K_RIGHT] and self.x < SZEROKOSC - self.szerokosc//2:
@@ -165,6 +238,12 @@ class Statek:
             self.y -= self.predkosc
         if klawisze[pygame.K_DOWN] and self.y < WYSOKOSC - self.wysokosc - 20:
             self.y += self.predkosc
+            
+        # Sterowanie klawiszami A i D
+        if klawisze[pygame.K_a] and self.x > self.szerokosc//2:
+            self.x -= self.predkosc
+        if klawisze[pygame.K_d] and self.x < SZEROKOSC - self.szerokosc//2:
+            self.x += self.predkosc
 
 class Pocisk:
     def __init__(self, x, y):
@@ -327,8 +406,15 @@ STATKI_SKLEP = {
     "podstawowy": {"nazwa": "Podstawowy", "cena": 0, "opis": "Darmowy statek startowy"},
     "szybki": {"nazwa": "Szybki", "cena": 100, "opis": "Szybszy ruch, złoty kolor"},
     "podwojny": {"nazwa": "Podwójny", "cena": 250, "opis": "Strzela dwoma pociskami!"},
-    "pancerny": {"nazwa": "Pancerny", "cena": 500, "opis": "Wolniejszy ale mocniejszy"}
+    "pancerny": {"nazwa": "Pancerny", "cena": 500, "opis": "Wolniejszy ale mocniejszy"},
+    "stealth": {"nazwa": "Stealth", "cena": 350, "opis": "Niewidzialny, bardzo szybki"},
+    "rakietowy": {"nazwa": "Rakietowy", "cena": 600, "opis": "Podwójne rakiety, średni"},
+    "plazma": {"nazwa": "Plazma", "cena": 450, "opis": "Energetyczny, szybki"},
+    "quantum": {"nazwa": "Quantum", "cena": 800, "opis": "Zaawansowany, podwójne strzały"},
+    "alien": {"nazwa": "Alien", "cena": 1000, "opis": "Obcy tech, duży i mocny"},
+    "crystal": {"nazwa": "Crystal", "cena": 750, "opis": "Najszybszy ze wszystkich!"}
 }
+
 
 def wczytaj_dane_gracza():
     """Wczytuje dane gracza z pliku"""
@@ -383,6 +469,20 @@ def ekran_startowy():
             if wydarzenie.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif wydarzenie.type == pygame.MOUSEBUTTONDOWN:
+                # Obsługa klików myszy
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                
+                if w_sklepie:
+                    # Sprawdzamy czy kliknięto przycisk resetowania konta
+                    if (SZEROKOSC//2 - 100 <= mouse_x <= SZEROKOSC//2 + 100 and 
+                        WYSOKOSC - 100 <= mouse_y <= WYSOKOSC - 60):
+                        # Resetujemy konto
+                        calkowite_punkty = 0
+                        posiadane_statki = ["podstawowy"]
+                        zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                        print("🗑️ KONTO ZRESETOWANE! Wszystkie statki i punkty usunięte.")
+                
             elif wydarzenie.type == pygame.KEYDOWN:
                 if not w_sklepie:
                     if wydarzenie.key == pygame.K_s:
@@ -397,6 +497,18 @@ def ekran_startowy():
                         wybrany_statek = "podwojny"
                     elif wydarzenie.key == pygame.K_4 and "pancerny" in posiadane_statki:
                         wybrany_statek = "pancerny"
+                    elif wydarzenie.key == pygame.K_5 and "stealth" in posiadane_statki:
+                        wybrany_statek = "stealth"
+                    elif wydarzenie.key == pygame.K_6 and "rakietowy" in posiadane_statki:
+                        wybrany_statek = "rakietowy"
+                    elif wydarzenie.key == pygame.K_7 and "plazma" in posiadane_statki:
+                        wybrany_statek = "plazma"
+                    elif wydarzenie.key == pygame.K_8 and "quantum" in posiadane_statki:
+                        wybrany_statek = "quantum"
+                    elif wydarzenie.key == pygame.K_9 and "alien" in posiadane_statki:
+                        wybrany_statek = "alien"
+                    elif wydarzenie.key == pygame.K_0 and "crystal" in posiadane_statki:
+                        wybrany_statek = "crystal"
                 else:
                     # W sklepie
                     if wydarzenie.key == pygame.K_ESCAPE:
@@ -422,6 +534,48 @@ def ekran_startowy():
                             calkowite_punkty -= 500
                             zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
                             print("🎉 Kupiłeś pancerny statek!")
+                    elif wydarzenie.key == pygame.K_4:
+                        # Kup stealth statek
+                        if "stealth" not in posiadane_statki and calkowite_punkty >= 350:
+                            posiadane_statki.append("stealth")
+                            calkowite_punkty -= 350
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś stealth statek!")
+                    elif wydarzenie.key == pygame.K_5:
+                        # Kup rakietowy statek
+                        if "rakietowy" not in posiadane_statki and calkowite_punkty >= 600:
+                            posiadane_statki.append("rakietowy")
+                            calkowite_punkty -= 600
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś rakietowy statek!")
+                    elif wydarzenie.key == pygame.K_6:
+                        # Kup plazma statek
+                        if "plazma" not in posiadane_statki and calkowite_punkty >= 450:
+                            posiadane_statki.append("plazma")
+                            calkowite_punkty -= 450
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś plazma statek!")
+                    elif wydarzenie.key == pygame.K_7:
+                        # Kup quantum statek
+                        if "quantum" not in posiadane_statki and calkowite_punkty >= 800:
+                            posiadane_statki.append("quantum")
+                            calkowite_punkty -= 800
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś quantum statek!")
+                    elif wydarzenie.key == pygame.K_8:
+                        # Kup alien statek
+                        if "alien" not in posiadane_statki and calkowite_punkty >= 1000:
+                            posiadane_statki.append("alien")
+                            calkowite_punkty -= 1000
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś alien statek!")
+                    elif wydarzenie.key == pygame.K_9:
+                        # Kup crystal statek
+                        if "crystal" not in posiadane_statki and calkowite_punkty >= 750:
+                            posiadane_statki.append("crystal")
+                            calkowite_punkty -= 750
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś crystal statek!")
         
         # Rysowanie
         okno.fill(CZARNY)
@@ -466,24 +620,44 @@ def ekran_startowy():
                 rect = tekst.get_rect(center=(SZEROKOSC//2, y_start + i * 35))
                 okno.blit(tekst, rect)
             
-            # Lista statków
+            # Lista statków - w dwóch kolumnach
             y_statki = y_start + 140
-            for i, (typ, info) in enumerate(STATKI_SKLEP.items()):
-                numer = i + 1
+            statki_lista = list(STATKI_SKLEP.items())
+            
+            for i, (typ, info) in enumerate(statki_lista):
+                # Numeracja dla wyboru
+                if i == 0: numer_klawisz = "1"
+                elif i == 1: numer_klawisz = "2" 
+                elif i == 2: numer_klawisz = "3"
+                elif i == 3: numer_klawisz = "4"
+                elif i == 4: numer_klawisz = "5"
+                elif i == 5: numer_klawisz = "6"
+                elif i == 6: numer_klawisz = "7"
+                elif i == 7: numer_klawisz = "8"
+                elif i == 8: numer_klawisz = "9"
+                elif i == 9: numer_klawisz = "0"
+                else: numer_klawisz = str(i)
+                
+                # Pozycja w dwóch kolumnach
+                kolumna = i % 2
+                rzad = i // 2
+                x_pos = 50 + kolumna * 350
+                y_pos = y_statki + rzad * 25
+                
                 if typ in posiadane_statki:
                     kolor = ZIELONY if typ == wybrany_statek else BIALY
                     symbol = "✓" if typ == wybrany_statek else "○"
-                    tekst = f"{symbol} {numer}. {info['nazwa']} - {info['opis']}"
+                    tekst = f"{symbol} {numer_klawisz}. {info['nazwa']}"
                 else:
                     kolor = CZERWONY
-                    tekst = f"X {numer}. {info['nazwa']} - Cena: {info['cena']}p"
+                    tekst = f"X {numer_klawisz}. {info['nazwa']} - {info['cena']}p"
                 
                 tekst_statek = czcionka_bardzo_mala.render(tekst, True, kolor)
-                okno.blit(tekst_statek, (50, y_statki + i * 25))
+                okno.blit(tekst_statek, (x_pos, y_pos))
         
         else:
             # Ekran sklepu
-            tytul_sklep = czcionka_duza.render("🛍 SKLEP STATKÓW 🚀", True, ZOLTY)
+            tytul_sklep = czcionka_duza.render("🛑 SKLEP STATKÓW 🚀", True, ZOLTY)
             rect_tytul_sklep = tytul_sklep.get_rect(center=(SZEROKOSC//2, 80))
             okno.blit(tytul_sklep, rect_tytul_sklep)
             
@@ -492,13 +666,22 @@ def ekran_startowy():
             rect_punkty_sklep = tekst_punkty_sklep.get_rect(center=(SZEROKOSC//2, 130))
             okno.blit(tekst_punkty_sklep, rect_punkty_sklep)
             
-            # Oferta sklepu
-            y_oferta = 180
-            statki_do_kupienia = [("szybki", 1), ("podwojny", 2), ("pancerny", 3)]
+            # Oferta sklepu - wszystkie statki oprócz podstawowego
+            y_oferta = 150
+            statki_do_kupienia = [
+                ("szybki", 1), ("podwojny", 2), ("pancerny", 3), ("stealth", 4), 
+                ("rakietowy", 5), ("plazma", 6), ("quantum", 7), ("alien", 8), ("crystal", 9)
+            ]
             
-            for typ, numer in statki_do_kupienia:
+            # Rysujemy w dwóch kolumnach
+            for i, (typ, numer) in enumerate(statki_do_kupienia):
                 info = STATKI_SKLEP[typ]
-                y_pos = y_oferta + (numer - 1) * 120
+                
+                # Pozycja - dwie kolumny
+                kolumna = i % 2
+                rzad = i // 2
+                x_pos = 50 + kolumna * 350
+                y_pos = y_oferta + rzad * 70
                 
                 # Ramka
                 if typ in posiadane_statki:
@@ -511,27 +694,41 @@ def ekran_startowy():
                     kolor_ramki = CZERWONY
                     status = "Za mało punktów"
                 
-                pygame.draw.rect(okno, kolor_ramki, (100, y_pos - 10, 600, 100), 3)
+                pygame.draw.rect(okno, kolor_ramki, (x_pos, y_pos - 5, 330, 60), 2)
                 
-                # Podgląd statku
+                # Podgląd statku (mniejszy)
                 statek_sklep = Statek(typ)
-                statek_sklep.x = 180
-                statek_sklep.y = y_pos + 30
+                statek_sklep.x = x_pos + 40
+                statek_sklep.y = y_pos + 20
+                # Zmniejszamy statek dla podglądu
+                original_w, original_h = statek_sklep.szerokosc, statek_sklep.wysokosc
+                statek_sklep.szerokosc = int(original_w * 0.6)
+                statek_sklep.wysokosc = int(original_h * 0.6)
                 statek_sklep.rysuj(okno)
                 
                 # Informacje
-                tekst_nazwa = czcionka_mala.render(f"{info['nazwa']} - {info['cena']} punktów", True, BIALY)
-                okno.blit(tekst_nazwa, (250, y_pos))
+                tekst_nazwa = czcionka_bardzo_mala.render(f"{numer}. {info['nazwa']} - {info['cena']}p", True, BIALY)
+                okno.blit(tekst_nazwa, (x_pos + 80, y_pos + 5))
                 
-                tekst_opis = czcionka_bardzo_mala.render(info['opis'], True, BIALY)
-                okno.blit(tekst_opis, (250, y_pos + 30))
+                tekst_opis = pygame.font.Font(None, 18).render(info['opis'], True, BIALY)
+                okno.blit(tekst_opis, (x_pos + 80, y_pos + 25))
                 
-                tekst_status = czcionka_bardzo_mala.render(status, True, kolor_ramki)
-                okno.blit(tekst_status, (250, y_pos + 60))
+                tekst_status = pygame.font.Font(None, 18).render(status, True, kolor_ramki)
+                okno.blit(tekst_status, (x_pos + 80, y_pos + 40))
             
-            # Instrukcja wyjścia
+            # Przycisk resetowania konta
+            pygame.draw.rect(okno, CZERWONY, (SZEROKOSC//2 - 100, WYSOKOSC - 100, 200, 40), 2)
+            tekst_reset = czcionka_mala.render("🗑️ RESETUJ KONTO", True, CZERWONY)
+            rect_reset = tekst_reset.get_rect(center=(SZEROKOSC//2, WYSOKOSC - 80))
+            okno.blit(tekst_reset, rect_reset)
+            
+            tekst_reset_info = czcionka_bardzo_mala.render("Kliknij aby usunąć wszystkie statki i punkty", True, BIALY)
+            rect_reset_info = tekst_reset_info.get_rect(center=(SZEROKOSC//2, WYSOKOSC - 55))
+            okno.blit(tekst_reset_info, rect_reset_info)
+            
+            # Instrukcje
             tekst_wyjscie = czcionka_mala.render("🚪 ESC - Powrót do menu", True, CZERWONY)
-            rect_wyjscie = tekst_wyjscie.get_rect(center=(SZEROKOSC//2, WYSOKOSC - 50))
+            rect_wyjscie = tekst_wyjscie.get_rect(center=(SZEROKOSC//2, WYSOKOSC - 25))
             okno.blit(tekst_wyjscie, rect_wyjscie)
         
         pygame.display.flip()
@@ -702,7 +899,6 @@ def main():
                     print(f"💥 CRASH! 🔥 (eksplozja bez dźwięku) Kolizja! Zostało Ci {zycia_statku} żyć!")
                 
                 if zycia_statku <= 0:
-                    game_over = True
                     # Zapisujemy punkty do całkowitych punktów gracza
                     calkowite_punkty, posiadane_statki = wczytaj_dane_gracza()
                     calkowite_punkty += punkty
@@ -718,6 +914,11 @@ def main():
                             print(f"🚀💥 KONIEC GRY! Zdobyłeś {punkty} punktów!")
                     else:
                         print(f"🚀💥 KONIEC GRY! Zdobyłeś {punkty} punktów!")
+                    
+                    # Krótka pauza i powrót do menu głównego
+                    pygame.time.wait(2000)  # Czekamy 2 sekundy
+                    main()  # Wracamy do menu głównego
+                    return
                 break
         
         # Rysowanie wszystkiego
@@ -756,7 +957,7 @@ def main():
         # Instrukcje sterowania i informacje o UFO
         czcionka_mala = pygame.font.Font(None, 24)
         instrukcje = [
-            "🚀 Strzałki - ruch statku",
+            "🚀 Strzałki lub A/D - ruch statku",
             "🔫 SPACJA - strzelaj! (Pew pew!)",
             "🛸 UFO: Mały(10p), Szybki(20p), Średni(25p), Duży(50p)",
             "💥 Eksplozje! Większe UFO = większe wybuchy!"

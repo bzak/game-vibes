@@ -1,2 +1,2 @@
-1540
-podstawowy,podwojny,szybki,pancerny
+0
+podstawowy
