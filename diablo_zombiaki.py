@@ -286,7 +286,7 @@ class Apteczka:
                 return True
         return False
     
-    def rysuj(self, ekran):
+    def rysuj(self, ekran, gracz):
         if not self.zebrana:
             if grafika_apteczka:
                 grafika_skalowana = pygame.transform.scale(grafika_apteczka, (self.szerokosc, self.wysokosc))
@@ -701,16 +701,16 @@ class Gra:
         ekran_x = self.gracz.x - self.kamera.x
         ekran_y = self.gracz.y - self.kamera.y
         
-        # Debug - wyświetl pozycję gracza i liczbę zombiaków
-        debug_text = self.maly_font.render(f"Gracz: {int(self.gracz.x)}, {int(self.gracz.y)} | Zombiaki: {len(self.zombiaki)}", True, BIALY)
+        # Debug - wyświetl pozycję gracza i kamery
+        debug_text = self.maly_font.render(f"Gracz: {int(self.gracz.x)}, {int(self.gracz.y)} | Kamera: {int(self.kamera.x)}, {int(self.kamera.y)}", True, BIALY)
         ekran.blit(debug_text, (10, 100))
         
-        # Debug - sprawdź czy gracz może się poruszać
-        if len(self.zombiaki) > 0:
-            najbliższy_zombiak = min(self.zombiaki, key=lambda z: math.sqrt((z.x - self.gracz.x)**2 + (z.y - self.gracz.y)**2))
-            odleglosc = math.sqrt((najbliższy_zombiak.x - self.gracz.x)**2 + (najbliższy_zombiak.y - self.gracz.y)**2)
-            debug_text2 = self.maly_font.render(f"Najbliższy zombiak: {int(odleglosc)} pikseli", True, BIALY)
-            ekran.blit(debug_text2, (10, 120))
+        # Debug - pozycja myszy
+        mysz_x, mysz_y = pygame.mouse.get_pos()
+        swiatowa_x = mysz_x + self.kamera.x
+        swiatowa_y = mysz_y + self.kamera.y
+        debug_text2 = self.maly_font.render(f"Mysz: {mysz_x}, {mysz_y} | Świat: {int(swiatowa_x)}, {int(swiatowa_y)}", True, BIALY)
+        ekran.blit(debug_text2, (10, 120))
         
         if grafika_bohater:
             grafika_skalowana = pygame.transform.scale(grafika_bohater, (self.gracz.szerokosc, self.gracz.wysokosc))
@@ -833,6 +833,15 @@ class Gra:
         for i, instrukcja in enumerate(instrukcje):
             tekst = self.maly_font.render(instrukcja, True, BIALY)
             ekran.blit(tekst, (20, WYSOKOSC - 150 + i * 25))
+        
+        # Rysuj celownik myszy (tylko gdy gracz ma pistolet)
+        if self.gracz.bron == "pistolet":
+            mysz_x, mysz_y = pygame.mouse.get_pos()
+            # Sprawdź czy mysz jest w granicach ekranu
+            if 0 <= mysz_x < SZEROKOSC and 0 <= mysz_y < WYSOKOSC:
+                pygame.draw.circle(ekran, CZERWONY, (mysz_x, mysz_y), 5, 2)
+                pygame.draw.line(ekran, CZERWONY, (mysz_x - 10, mysz_y), (mysz_x + 10, mysz_y), 2)
+                pygame.draw.line(ekran, CZERWONY, (mysz_x, mysz_y - 10), (mysz_x, mysz_y + 10), 2)
 
 def main():
     gra = Gra()
