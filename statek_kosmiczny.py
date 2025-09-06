@@ -1,8 +1,6 @@
-
 import pygame
 import random
 import sys
-
 # Inicjalizacja pygame
 pygame.init()
 pygame.mixer.init()  # Inicjalizacja dźwięku
@@ -242,6 +240,62 @@ class Statek:
             self.kolor_glowny = (173, 216, 230)  # Jasnoniebieski
             self.kolor_silniki = BIALY
             self.podwojne_strzaly = False
+        elif typ == "laser":
+            self.szerokosc = 50
+            self.wysokosc = 30
+            self.predkosc = 9
+            self.kolor_glowny = (255, 0, 255)  # Magenta
+            self.kolor_silniki = (0, 255, 255)  # Cyjan
+            self.podwojne_strzaly = False
+        elif typ == "thunder":
+            self.szerokosc = 70
+            self.wysokosc = 45
+            self.predkosc = 7
+            self.kolor_glowny = (255, 255, 0)  # Żółty
+            self.kolor_silniki = (128, 0, 128)  # Fioletowy
+            self.podwojne_strzaly = True
+        elif typ == "shadow":
+            self.szerokosc = 35
+            self.wysokosc = 25
+            self.predkosc = 11
+            self.kolor_glowny = (64, 64, 64)  # Ciemny szary
+            self.kolor_silniki = (255, 0, 0)  # Czerwony
+            self.podwojne_strzaly = False
+        elif typ == "phoenix":
+            self.szerokosc = 85
+            self.wysokosc = 50
+            self.predkosc = 5
+            self.kolor_glowny = (255, 69, 0)  # Czerwono-pomarańczowy
+            self.kolor_silniki = (255, 215, 0)  # Złoty
+            self.podwojne_strzaly = True  # Rakiety!
+        elif typ == "laser":
+            self.szerokosc = 50
+            self.wysokosc = 30
+            self.predkosc = 9
+            self.kolor_glowny = (255, 0, 255)  # Magenta
+            self.kolor_silniki = (0, 255, 255)  # Cyjan
+            self.podwojne_strzaly = False
+        elif typ == "thunder":
+            self.szerokosc = 70
+            self.wysokosc = 45
+            self.predkosc = 7
+            self.kolor_glowny = (255, 255, 0)  # Żółty
+            self.kolor_silniki = (128, 0, 128)  # Fioletowy
+            self.podwojne_strzaly = True
+        elif typ == "shadow":
+            self.szerokosc = 35
+            self.wysokosc = 25
+            self.predkosc = 11
+            self.kolor_glowny = (64, 64, 64)  # Ciemny szary
+            self.kolor_silniki = (255, 0, 0)  # Czerwony
+            self.podwojne_strzaly = False
+        elif typ == "phoenix":
+            self.szerokosc = 85
+            self.wysokosc = 50
+            self.predkosc = 5
+            self.kolor_glowny = (255, 69, 0)  # Czerwono-pomarańczowy
+            self.kolor_silniki = (255, 215, 0)  # Złoty
+            self.podwojne_strzaly = True  # Rakiety!
         
     def rysuj(self, okno):
         # Jeśli mamy załadowane grafiki, używamy ich
@@ -517,7 +571,11 @@ STATKI_SKLEP = {
     "plazma": {"nazwa": "Plazma", "cena": 450, "opis": "Energetyczny, szybki"},
     "quantum": {"nazwa": "Quantum", "cena": 800, "opis": "Zaawansowany, podwójne strzały"},
     "alien": {"nazwa": "Alien", "cena": 1000, "opis": "Obcy tech, duży i mocny"},
-    "crystal": {"nazwa": "Crystal", "cena": 750, "opis": "Najszybszy ze wszystkich!"}
+    "crystal": {"nazwa": "Crystal", "cena": 750, "opis": "Najszybszy ze wszystkich!"},
+    "laser": {"nazwa": "Laser", "cena": 900, "opis": "Mocny laser, szybki"},
+    "thunder": {"nazwa": "Thunder", "cena": 1200, "opis": "Potężny, podwójne strzały"},
+    "shadow": {"nazwa": "Shadow", "cena": 1100, "opis": "Ciemny, szybki"},
+    "phoenix": {"nazwa": "Phoenix", "cena": 1300, "opis": "Ognisty, potężny"}
 }
 
 
@@ -614,6 +672,14 @@ def ekran_startowy():
                         wybrany_statek = "alien"
                     elif wydarzenie.key == pygame.K_0 and "crystal" in posiadane_statki:
                         wybrany_statek = "crystal"
+                    elif wydarzenie.key == pygame.K_a and "laser" in posiadane_statki:
+                        wybrany_statek = "laser"
+                    elif wydarzenie.key == pygame.K_b and "thunder" in posiadane_statki:
+                        wybrany_statek = "thunder"
+                    elif wydarzenie.key == pygame.K_c and "shadow" in posiadane_statki:
+                        wybrany_statek = "shadow"
+                    elif wydarzenie.key == pygame.K_d and "phoenix" in posiadane_statki:
+                        wybrany_statek = "phoenix"
                 else:
                     # W sklepie
                     if wydarzenie.key == pygame.K_ESCAPE:
@@ -681,6 +747,34 @@ def ekran_startowy():
                             calkowite_punkty -= 750
                             zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
                             print("🎉 Kupiłeś crystal statek!")
+                    elif wydarzenie.key == pygame.K_a:
+                        # Kup laser statek
+                        if "laser" not in posiadane_statki and calkowite_punkty >= 900:
+                            posiadane_statki.append("laser")
+                            calkowite_punkty -= 900
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś laser statek!")
+                    elif wydarzenie.key == pygame.K_b:
+                        # Kup thunder statek
+                        if "thunder" not in posiadane_statki and calkowite_punkty >= 1200:
+                            posiadane_statki.append("thunder")
+                            calkowite_punkty -= 1200
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś thunder statek!")
+                    elif wydarzenie.key == pygame.K_c:
+                        # Kup shadow statek
+                        if "shadow" not in posiadane_statki and calkowite_punkty >= 1100:
+                            posiadane_statki.append("shadow")
+                            calkowite_punkty -= 1100
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś shadow statek!")
+                    elif wydarzenie.key == pygame.K_d:
+                        # Kup phoenix statek
+                        if "phoenix" not in posiadane_statki and calkowite_punkty >= 1300:
+                            posiadane_statki.append("phoenix")
+                            calkowite_punkty -= 1300
+                            zapisz_dane_gracza(calkowite_punkty, posiadane_statki)
+                            print("🎉 Kupiłeś phoenix statek!")
         
         # Rysowanie
         okno.fill(CZARNY)
@@ -741,6 +835,10 @@ def ekran_startowy():
                 elif i == 7: numer_klawisz = "8"
                 elif i == 8: numer_klawisz = "9"
                 elif i == 9: numer_klawisz = "0"
+                elif i == 10: numer_klawisz = "A"
+                elif i == 11: numer_klawisz = "B"
+                elif i == 12: numer_klawisz = "C"
+                elif i == 13: numer_klawisz = "D"
                 else: numer_klawisz = str(i)
                 
                 # Pozycja w dwóch kolumnach
@@ -775,7 +873,8 @@ def ekran_startowy():
             y_oferta = 150
             statki_do_kupienia = [
                 ("szybki", 1), ("podwojny", 2), ("pancerny", 3), ("stealth", 4), 
-                ("rakietowy", 5), ("plazma", 6), ("quantum", 7), ("alien", 8), ("crystal", 9)
+                ("rakietowy", 5), ("plazma", 6), ("quantum", 7), ("alien", 8), ("crystal", 9),
+                ("laser", 10), ("thunder", 11), ("shadow", 12), ("phoenix", 13)
             ]
             
             # Rysujemy w dwóch kolumnach

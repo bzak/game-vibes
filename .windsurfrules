@@ -8,4 +8,7 @@ Jeśli pytanie / zadanie jest w języku angielskim to znaczy że rodzić który 
 
 Nie uruchamiaj gry (bo to nie działa) tylko wyświetlaj komendę którą trzeba wpisać do terminala aby uruchomić grę.
 
+Gdy generujesz grafikę z stability ai pamiętaj aby określić wymiary grafiki w pikselach, stability często generuje grafikę pełnoekranową a do gry potrzebne są grafiki o określonym rozmiarze często o wiele mniejsze. Dodawaj do komendy stability "draw it in a pixel art style with very large pixels spanning multiple actual pixels to make it look like a game asset with pixel dimensions of width x height" określić wymiary grafiki, oraz "pixel art style", "game asset" aby grafika bardziej pasowała do gry. W polu stylePresets wybierz "pixel-art".
+
 Zawsze po wygenerowaniu grafiki usuń tło z grafiki używając narzędzia stability ai.
+

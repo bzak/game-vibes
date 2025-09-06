@@ -1,2 +1,2 @@
-1345
-podstawowy,pancerny,podwojny
+0
+podstawowy

@@ -6,10 +6,10 @@ Zamienia kolor pierwszego piksela (lewy górny róg) na przezroczysty.
 
 import os
 from PIL import Image
-
 def usun_tlo_z_obrazka(sciezka_wejsciowa, sciezka_wyjsciowa=None):
     """
-    Usuwa tło z obrazka na podstawie koloru pierwszego piksela.
+    Usuwa
+d tło z obrazka na podstawie koloru pierwszego piksela.
     
     Args:
         sciezka_wejsciowa: Ścieżka do obrazka wejściowego
