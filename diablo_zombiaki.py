@@ -373,48 +373,46 @@ class Gra:
         self.sciany.append(Sciana(0, 0, 20, MAPA_WYSOKOSC))  # Lewa
         self.sciany.append(Sciana(MAPA_SZEROKOSC-20, 0, 20, MAPA_WYSOKOSC))  # Prawa
         
-        # Kompleksowy labirynt inspirowany obrazkiem
-        # Główne korytarze poziome
-        self.sciany.append(Sciana(100, 200, 300, 20))  # Górny korytarz
-        self.sciany.append(Sciana(500, 200, 400, 20))
-        self.sciany.append(Sciana(100, 400, 200, 20))  # Środkowy korytarz
-        self.sciany.append(Sciana(400, 400, 300, 20))
-        self.sciany.append(Sciana(200, 600, 400, 20))  # Dolny korytarz
+        # Uproszczony labirynt z bardzo szerokimi przejściami
+        # Tylko kilka głównych ścian z dużymi przerwami
+        self.sciany.append(Sciana(100, 200, 150, 20))  # Górny korytarz - lewa część
+        self.sciany.append(Sciana(350, 200, 100, 20))  # Górny korytarz - środek
+        self.sciany.append(Sciana(550, 200, 150, 20))  # Górny korytarz - prawa część
         
-        # Główne korytarze pionowe
-        self.sciany.append(Sciana(200, 100, 20, 200))  # Lewy pionowy
-        self.sciany.append(Sciana(400, 50, 20, 300))   # Środkowy pionowy
-        self.sciany.append(Sciana(600, 100, 20, 250))  # Prawy pionowy
-        self.sciany.append(Sciana(800, 150, 20, 200))
+        self.sciany.append(Sciana(100, 400, 80, 20))   # Środkowy korytarz - lewa część
+        self.sciany.append(Sciana(280, 400, 80, 20))   # Środkowy korytarz - środek
+        self.sciany.append(Sciana(460, 400, 100, 20))  # Środkowy korytarz - prawa część
         
-        # Pokoje - lewy górny obszar
-        self.sciany.append(Sciana(50, 50, 120, 20))
-        self.sciany.append(Sciana(50, 50, 20, 120))
-        self.sciany.append(Sciana(150, 50, 20, 80))
-        self.sciany.append(Sciana(50, 150, 100, 20))
+        self.sciany.append(Sciana(200, 600, 150, 20))  # Dolny korytarz - lewa część
+        self.sciany.append(Sciana(450, 600, 100, 20))  # Dolny korytarz - prawa część
         
-        # Pokoje - prawy górny obszar
-        self.sciany.append(Sciana(450, 50, 150, 20))
-        self.sciany.append(Sciana(580, 50, 20, 100))
-        self.sciany.append(Sciana(450, 120, 100, 20))
+        # Pionowe ściany z bardzo szerokimi przejściami (100+ pikseli)
+        self.sciany.append(Sciana(200, 100, 20, 80))   # Lewy pionowy - góra
+        self.sciany.append(Sciana(200, 320, 20, 60))   # Lewy pionowy - dół
         
-        # Pokoje - środkowy obszar
-        self.sciany.append(Sciana(250, 250, 100, 20))
-        self.sciany.append(Sciana(250, 250, 20, 100))
-        self.sciany.append(Sciana(330, 250, 20, 80))
-        self.sciany.append(Sciana(250, 330, 80, 20))
+        self.sciany.append(Sciana(400, 50, 20, 60))    # Środkowy pionowy - góra
+        self.sciany.append(Sciana(400, 280, 20, 60))   # Środkowy pionowy - środek
+        self.sciany.append(Sciana(400, 480, 20, 40))   # Środkowy pionowy - dół
         
-        # Pokoje - dolny obszar
-        self.sciany.append(Sciana(100, 500, 150, 20))
-        self.sciany.append(Sciana(100, 500, 20, 80))
-        self.sciany.append(Sciana(230, 500, 20, 60))
-        self.sciany.append(Sciana(400, 500, 200, 20))
-        self.sciany.append(Sciana(580, 500, 20, 100))
+        self.sciany.append(Sciana(600, 100, 20, 80))   # Prawy pionowy - góra
+        self.sciany.append(Sciana(600, 320, 20, 60))   # Prawy pionowy - dół
         
-        # Małe pokoje i zakamarki
-        self.sciany.append(Sciana(700, 300, 80, 20))
-        self.sciany.append(Sciana(700, 300, 20, 60))
-        self.sciany.append(Sciana(760, 340, 20, 60))
+        # Minimalne pokoje - tylko podstawowe ściany z ogromnymi wyjściami
+        # Lewy górny pokój
+        self.sciany.append(Sciana(50, 50, 80, 20))     # Górna ściana - skrócona
+        self.sciany.append(Sciana(50, 50, 20, 60))     # Lewa ściana - skrócona
+        
+        # Prawy górny pokój  
+        self.sciany.append(Sciana(500, 50, 80, 20))    # Górna ściana - skrócona
+        self.sciany.append(Sciana(650, 50, 20, 60))    # Prawa ściana - skrócona
+        
+        # Środkowy pokój
+        self.sciany.append(Sciana(280, 280, 60, 20))   # Mała ściana
+        self.sciany.append(Sciana(280, 280, 20, 60))   # Mała ściana
+        
+        # Dolny pokój
+        self.sciany.append(Sciana(150, 520, 80, 20))   # Dolna ściana - skrócona
+        self.sciany.append(Sciana(150, 480, 20, 40))   # Lewa ściana - skrócona
         
         # Schody (w różnych miejscach na różnych piętrach)
         if self.pietro > 1:
