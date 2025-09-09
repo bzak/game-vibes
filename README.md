@@ -40,7 +40,11 @@ Epicka gra kosmiczna z systemem sklepu i różnymi statkami do odblokowania!
 python statek_kosmiczny.py
 ```
 
-### 2. Kot Parowa - Gra Snake z Kotem! 🐱
+![Screenshot gry Statek Kosmiczny](screenshot-statek-kosmiczny.png)
+
+
+
+### 2. Kot Parówa - Gra Snake z Kotem! 🐱
 
 **Plik:** `kot_parowy.py`
 
@@ -56,6 +60,8 @@ Klasyczna gra Snake, ale zamiast węża mamy uroczego kota parówkę!
 ```
 python kot_parowy.py
 ```
+
+![Screenshot gry Kot Parowa](screenshot-kot-parowa.png)
 
 ### 🎮 Inne gry w repozytorium:
 - **Diablo Zombiaki** (`diablo_zombiaki.py`) - gra akcji w stylu Diablo
