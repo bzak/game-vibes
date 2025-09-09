@@ -2,11 +2,9 @@
 
 # 🎮 Gry do Nauki Programowania dla Dzieci
 
-To repozytorium zawiera kolekcję gier stworzonych w celu nauki programowania dla dzieci w wieku 7-10 lat (i trochę starszych). Wszystkie gry są napisane w języku Python z użyciem biblioteki pygame, z polskimi komentarzami i prostym, zrozumiałym kodem.
+To repozytorium zawiera kolekcję gier stworzonych w celu nauki programowania dla dzieci w wieku 7-10 lat (i trochę starszych). 
 
-## 📝 Ważne informacje
-
-W repozytorium znajduje się plik `.windsurfrules`, który zawiera specjalne instrukcje dla AI asystenta pomagającego w nauce programowania. Dzięki temu AI dostosowuje swoje odpowiedzi do poziomu młodego programisty.
+W repozytorium znajduje się plik `.windsurfrules`, który zawiera specjalne instrukcje dla AI asystenta pomagającego w nauce programowania. Dzięki temu AI dostosowuje swoje odpowiedzi do poziomu młodego programisty. Wszystkie gry zostały stworzone przez dzieci 7-10 lat (z niewielką pomocą rodziców), poprzez mówienie do edytora Windsurf, na razie bez rozumienia kodu. O dziwo Windsurf bardzo dobrze rozpoznaje mowę po polsku nawet dyktowaną przez dzieci, a AI Claude Sonnet całkiem dobrze radzi sobie z pisaniem prostych gier w pygame. Warto też dodać do edytora AI [MCP stability-ai](https://github.com/tadasant/mcp-server-stability-ai) do generowania grafik do gier. 
 
 ## 🛠️ Instalacja
 
