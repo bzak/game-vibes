@@ -1,6 +1,10 @@
 import pygame
-import math
 import random
+import math
+
+# Dodaj seed dla powtarzalności podczas testowania
+random.seed()
+
 import os
 
 # Inicjalizacja pygame
@@ -64,6 +68,11 @@ class Gracz:
         self.czas_miedzy_strzalami = 300  # milisekundy
         self.kierunek_x = 0
         self.kierunek_y = 0
+    
+    def koliduje_z(self, rect):
+        """Sprawdza kolizję z prostokątem"""
+        gracz_rect = pygame.Rect(self.x, self.y, self.szerokosc, self.wysokosc)
+        return gracz_rect.colliderect(rect)
         
     def ruch(self, klawisze):
         self.kierunek_x = 0
@@ -307,16 +316,38 @@ class Sciana:
     
     def rysuj(self, ekran):
         pygame.draw.rect(ekran, BRAZOWY, self.rect)
-        pygame.draw.rect(ekran, CZARNY, self.rect, 2)
 
-class Drzwi:
-    def __init__(self, x, y, szerokosc, wysokosc, cel_pietro=None):
+class Schody:
+    def __init__(self, x, y, szerokosc, wysokosc, docelowe_pietro):
         self.x = x
         self.y = y
         self.szerokosc = szerokosc
         self.wysokosc = wysokosc
+        self.docelowe_pietro = docelowe_pietro
         self.rect = pygame.Rect(x, y, szerokosc, wysokosc)
+    
+    def rysuj(self, ekran):
+        # Schody na dół (szare)
+        pygame.draw.rect(ekran, (128, 128, 128), self.rect)
+        # Linie schodów
+        for i in range(0, self.wysokosc, 8):
+            pygame.draw.line(ekran, (100, 100, 100), 
+                           (self.x, self.y + i), 
+                           (self.x + self.szerokosc, self.y + i), 2)
+        # Napis "SCHODY"
+        font = pygame.font.Font(None, 20)
+        tekst = font.render("SCHODY", True, (255, 255, 255))
+        tekst_rect = tekst.get_rect(center=(self.x + self.szerokosc//2, self.y + self.wysokosc//2))
+        ekran.blit(tekst, tekst_rect)
+
+class Drzwi:
+    def __init__(self, x, y, szerokosc, wysokosc, cel_pietro):
+        self.x = x
+        self.y = y
+        self.szerokosc = szerokosc
+        self.wysokosc = wysokosc
         self.cel_pietro = cel_pietro  # None dla drzwi między pokojami, numer dla schodów
+        self.rect = pygame.Rect(x, y, szerokosc, wysokosc)
     
     def rysuj(self, ekran):
         if self.cel_pietro:  # Schody
@@ -373,46 +404,8 @@ class Gra:
         self.sciany.append(Sciana(0, 0, 20, MAPA_WYSOKOSC))  # Lewa
         self.sciany.append(Sciana(MAPA_SZEROKOSC-20, 0, 20, MAPA_WYSOKOSC))  # Prawa
         
-        # Uproszczony labirynt z bardzo szerokimi przejściami
-        # Tylko kilka głównych ścian z dużymi przerwami
-        self.sciany.append(Sciana(100, 200, 150, 20))  # Górny korytarz - lewa część
-        self.sciany.append(Sciana(350, 200, 100, 20))  # Górny korytarz - środek
-        self.sciany.append(Sciana(550, 200, 150, 20))  # Górny korytarz - prawa część
-        
-        self.sciany.append(Sciana(100, 400, 80, 20))   # Środkowy korytarz - lewa część
-        self.sciany.append(Sciana(280, 400, 80, 20))   # Środkowy korytarz - środek
-        self.sciany.append(Sciana(460, 400, 100, 20))  # Środkowy korytarz - prawa część
-        
-        self.sciany.append(Sciana(200, 600, 150, 20))  # Dolny korytarz - lewa część
-        self.sciany.append(Sciana(450, 600, 100, 20))  # Dolny korytarz - prawa część
-        
-        # Pionowe ściany z bardzo szerokimi przejściami (100+ pikseli)
-        self.sciany.append(Sciana(200, 100, 20, 80))   # Lewy pionowy - góra
-        self.sciany.append(Sciana(200, 320, 20, 60))   # Lewy pionowy - dół
-        
-        self.sciany.append(Sciana(400, 50, 20, 60))    # Środkowy pionowy - góra
-        self.sciany.append(Sciana(400, 280, 20, 60))   # Środkowy pionowy - środek
-        self.sciany.append(Sciana(400, 480, 20, 40))   # Środkowy pionowy - dół
-        
-        self.sciany.append(Sciana(600, 100, 20, 80))   # Prawy pionowy - góra
-        self.sciany.append(Sciana(600, 320, 20, 60))   # Prawy pionowy - dół
-        
-        # Minimalne pokoje - tylko podstawowe ściany z ogromnymi wyjściami
-        # Lewy górny pokój
-        self.sciany.append(Sciana(50, 50, 80, 20))     # Górna ściana - skrócona
-        self.sciany.append(Sciana(50, 50, 20, 60))     # Lewa ściana - skrócona
-        
-        # Prawy górny pokój  
-        self.sciany.append(Sciana(500, 50, 80, 20))    # Górna ściana - skrócona
-        self.sciany.append(Sciana(650, 50, 20, 60))    # Prawa ściana - skrócona
-        
-        # Środkowy pokój
-        self.sciany.append(Sciana(280, 280, 60, 20))   # Mała ściana
-        self.sciany.append(Sciana(280, 280, 20, 60))   # Mała ściana
-        
-        # Dolny pokój
-        self.sciany.append(Sciana(150, 520, 80, 20))   # Dolna ściana - skrócona
-        self.sciany.append(Sciana(150, 480, 20, 40))   # Lewa ściana - skrócona
+        # LOSOWY GENERATOR LABIRYNTU
+        self.generuj_losowy_labirynt()
         
         # Schody (w różnych miejscach na różnych piętrach)
         if self.pietro > 1:
@@ -446,6 +439,171 @@ class Gra:
             pokoj_nr = random.randint(1, 6)
             x, y = self.get_pozycja_w_pokoju(pokoj_nr)
             self.apteczki.append(Apteczka(x, y))
+    
+    def generuj_losowy_labirynt(self):
+        """Generuje złożony labirynt wypełniający całą mapę"""
+        
+        # Lista wszystkich pokoi
+        self.pokoje = []
+        
+        # Siatka 5x4 małych pokoi (więcej pokoi = bardziej złożony labirynt)
+        pokoje_x = 5
+        pokoje_y = 4
+        
+        # Rozmiar pojedynczego pokoju
+        rozmiar_pokoju_x = (MAPA_SZEROKOSC - 40) // pokoje_x
+        rozmiar_pokoju_y = (MAPA_WYSOKOSC - 40) // pokoje_y
+        
+        # Generuj siatkę pokoi
+        for px in range(pokoje_x):
+            for py in range(pokoje_y):
+                # Pozycja pokoju
+                base_x = 20 + px * rozmiar_pokoju_x
+                base_y = 20 + py * rozmiar_pokoju_y
+                
+                # Rozmiar pokoju (wypełnia całą komórkę siatki)
+                szer = rozmiar_pokoju_x
+                wys = rozmiar_pokoju_y
+                
+                # Zapisz informacje o pokoju
+                pokoj = {
+                    'x': base_x,
+                    'y': base_y,
+                    'szer': szer,
+                    'wys': wys,
+                    'indeks': py * pokoje_x + px
+                }
+                
+                self.pokoje.append(pokoj)
+        
+        # Generuj ściany i korytarze używając algorytmu labiryntu
+        self.generuj_sciany_labiryntu(pokoje_x, pokoje_y)
+        
+        # Dodaj losowe schody w jednym z pokoi (zawsze dostępne)
+        if self.pietro > 1:
+            losowy_pokoj = random.choice(self.pokoje)
+            schody_x = losowy_pokoj['x'] + losowy_pokoj['szer']//2 - 30
+            schody_y = losowy_pokoj['y'] + losowy_pokoj['wys']//2 - 30
+            self.schody = Schody(schody_x, schody_y, 60, 60, self.pietro - 1)
+        else:
+            self.schody = None
+        
+        # Generuj apteczki w losowych pokojach
+        liczba_apteczek = random.randint(2, 4)
+        wybrane_pokoje = random.sample(self.pokoje, min(liczba_apteczek, len(self.pokoje)))
+        
+        for pokoj in wybrane_pokoje:
+            apt_x = pokoj['x'] + pokoj['szer']//2 - 12
+            apt_y = pokoj['y'] + pokoj['wys']//2 - 12
+            self.apteczki.append(Apteczka(apt_x, apt_y))
+    
+    def generuj_sciany_labiryntu(self, pokoje_x, pokoje_y):
+        """Generuje ściany labiryntu używając algorytmu maze generation"""
+        
+        # Tworzymy tablicę połączeń (True = jest ściana, False = przejście)
+        sciany_poziome = [[True for _ in range(pokoje_x)] for _ in range(pokoje_y + 1)]
+        sciany_pionowe = [[True for _ in range(pokoje_x + 1)] for _ in range(pokoje_y)]
+        
+        # Algorytm Recursive Backtracking do generowania labiryntu
+        odwiedzone = [[False for _ in range(pokoje_x)] for _ in range(pokoje_y)]
+        stos = [(0, 0)]
+        odwiedzone[0][0] = True
+        
+        while stos:
+            current_x, current_y = stos[-1]
+            
+            # Znajdź nieodwiedzonych sąsiadów
+            sasiedzi = []
+            if current_x > 0 and not odwiedzone[current_y][current_x - 1]:
+                sasiedzi.append(('lewo', current_x - 1, current_y))
+            if current_x < pokoje_x - 1 and not odwiedzone[current_y][current_x + 1]:
+                sasiedzi.append(('prawo', current_x + 1, current_y))
+            if current_y > 0 and not odwiedzone[current_y - 1][current_x]:
+                sasiedzi.append(('gora', current_x, current_y - 1))
+            if current_y < pokoje_y - 1 and not odwiedzone[current_y + 1][current_x]:
+                sasiedzi.append(('dol', current_x, current_y + 1))
+            
+            if sasiedzi:
+                # Wybierz losowego sąsiada
+                kierunek, next_x, next_y = random.choice(sasiedzi)
+                
+                # Usuń ścianę między pokojami
+                if kierunek == 'lewo':
+                    sciany_pionowe[current_y][current_x] = False
+                elif kierunek == 'prawo':
+                    sciany_pionowe[current_y][current_x + 1] = False
+                elif kierunek == 'gora':
+                    sciany_poziome[current_y][current_x] = False
+                elif kierunek == 'dol':
+                    sciany_poziome[current_y + 1][current_x] = False
+                
+                # Odwiedź sąsiada
+                odwiedzone[next_y][next_x] = True
+                stos.append((next_x, next_y))
+            else:
+                stos.pop()
+        
+        # Dodaj kilka dodatkowych losowych przejść dla lepszej rozgrywki
+        for _ in range(pokoje_x * pokoje_y // 4):
+            if random.random() < 0.5:
+                # Losowe przejście poziome
+                x = random.randint(0, pokoje_x - 1)
+                y = random.randint(1, pokoje_y - 1)
+                sciany_poziome[y][x] = False
+            else:
+                # Losowe przejście pionowe
+                x = random.randint(1, pokoje_x - 1)
+                y = random.randint(0, pokoje_y - 1)
+                sciany_pionowe[y][x] = False
+        
+        # Generuj faktyczne ściany na podstawie tablicy
+        grubosc = 15
+        rozmiar_pokoju_x = (MAPA_SZEROKOSC - 40) // pokoje_x
+        rozmiar_pokoju_y = (MAPA_WYSOKOSC - 40) // pokoje_y
+        
+        # Ściany poziome
+        for y in range(pokoje_y + 1):
+            for x in range(pokoje_x):
+                if sciany_poziome[y][x]:
+                    pos_x = 20 + x * rozmiar_pokoju_x
+                    pos_y = 20 + y * rozmiar_pokoju_y - grubosc // 2
+                    
+                    # Sprawdź czy to nie brzeg mapy
+                    if y > 0 and y < pokoje_y:
+                        # Dodaj ścianę z małą przerwą na drzwi
+                        przerwa_start = rozmiar_pokoju_x // 2 - 30
+                        przerwa_koniec = rozmiar_pokoju_x // 2 + 30
+                        
+                        if przerwa_start > 0:
+                            self.sciany.append(Sciana(pos_x, pos_y, przerwa_start, grubosc))
+                        if przerwa_koniec < rozmiar_pokoju_x:
+                            self.sciany.append(Sciana(pos_x + przerwa_koniec, pos_y, 
+                                                    rozmiar_pokoju_x - przerwa_koniec, grubosc))
+                    else:
+                        # Pełna ściana na brzegu
+                        self.sciany.append(Sciana(pos_x, pos_y, rozmiar_pokoju_x, grubosc))
+        
+        # Ściany pionowe
+        for y in range(pokoje_y):
+            for x in range(pokoje_x + 1):
+                if sciany_pionowe[y][x]:
+                    pos_x = 20 + x * rozmiar_pokoju_x - grubosc // 2
+                    pos_y = 20 + y * rozmiar_pokoju_y
+                    
+                    # Sprawdź czy to nie brzeg mapy
+                    if x > 0 and x < pokoje_x:
+                        # Dodaj ścianę z małą przerwą na drzwi
+                        przerwa_start = rozmiar_pokoju_y // 2 - 30
+                        przerwa_koniec = rozmiar_pokoju_y // 2 + 30
+                        
+                        if przerwa_start > 0:
+                            self.sciany.append(Sciana(pos_x, pos_y, grubosc, przerwa_start))
+                        if przerwa_koniec < rozmiar_pokoju_y:
+                            self.sciany.append(Sciana(pos_x, pos_y + przerwa_koniec, 
+                                                    grubosc, rozmiar_pokoju_y - przerwa_koniec))
+                    else:
+                        # Pełna ściana na brzegu
+                        self.sciany.append(Sciana(pos_x, pos_y, grubosc, rozmiar_pokoju_y))
         
         # Schody (w różnych miejscach na różnych piętrach)
         if self.pietro > 1:
@@ -565,52 +723,52 @@ class Gra:
     def aktualizuj(self):
         klawisze = pygame.key.get_pressed()
         
-        # Ruch gracza - najpierw sprawdź czy są naciśnięte klawisze
-        stary_x, stary_y = self.gracz.x, self.gracz.y
+        # Aktualizuj odkryte obszary
+        gracz_kafelek_x = self.gracz.x // ROZMIAR_KAFELKA
+        gracz_kafelek_y = self.gracz.y // ROZMIAR_KAFELKA
         
-        # Bezpośredni ruch gracza
-        ruch_x = 0
-        ruch_y = 0
+        # Odkryj obszar wokół gracza (promień 3 kafelki)
+        for dx in range(-3, 4):
+            for dy in range(-3, 4):
+                kafelek_x = gracz_kafelek_x + dx
+                kafelek_y = gracz_kafelek_y + dy
+                self.odkryte_obszary.add((kafelek_x, kafelek_y))
         
-        if klawisze[pygame.K_LEFT] or klawisze[pygame.K_a]:
-            ruch_x = -self.gracz.predkosc
-            self.gracz.kierunek_x = -1
-        elif klawisze[pygame.K_RIGHT] or klawisze[pygame.K_d]:
-            ruch_x = self.gracz.predkosc
-            self.gracz.kierunek_x = 1
-        else:
-            self.gracz.kierunek_x = 0
-            
-        if klawisze[pygame.K_UP] or klawisze[pygame.K_w]:
-            ruch_y = -self.gracz.predkosc
-            self.gracz.kierunek_y = -1
-        elif klawisze[pygame.K_DOWN] or klawisze[pygame.K_s]:
-            ruch_y = self.gracz.predkosc
-            self.gracz.kierunek_y = 1
-        else:
-            self.gracz.kierunek_y = 0
+        # Ruch gracza
+        self.gracz.ruch(klawisze)
         
-        # Zastosuj ruch
-        nowa_x = self.gracz.x + ruch_x
-        nowa_y = self.gracz.y + ruch_y
+        # Kolizje ze ścianami
+        for sciana in self.sciany:
+            if self.gracz.koliduje_z(sciana.rect):
+                # Cofnij ruch
+                if self.gracz.kierunek_x > 0:  # Ruch w prawo
+                    self.gracz.x = sciana.x - self.gracz.szerokosc
+                elif self.gracz.kierunek_x < 0:  # Ruch w lewo
+                    self.gracz.x = sciana.x + sciana.szerokosc
+                if self.gracz.kierunek_y > 0:  # Ruch w dół
+                    self.gracz.y = sciana.y - self.gracz.wysokosc
+                elif self.gracz.kierunek_y < 0:  # Ruch w górę
+                    self.gracz.y = sciana.y + sciana.wysokosc
         
-        # Ograniczenia mapy
-        nowa_x = max(20, min(MAPA_SZEROKOSC - self.gracz.szerokosc - 20, nowa_x))
-        nowa_y = max(20, min(MAPA_WYSOKOSC - self.gracz.wysokosc - 20, nowa_y))
+        # Sprawdź kolizję ze schodami (zawsze dostępne!)
+        if self.schody and self.gracz.koliduje_z(self.schody.rect):
+            # Wyświetl informację o możliwości użycia schodów
+            if klawisze[pygame.K_e]:  # Użyj klawisza E żeby zejść schodami
+                # Przejdź na następny poziom
+                self.pietro = self.schody.docelowe_pietro
+                self.generuj_poziom()
+                return "gra"
         
-        # Sprawdź kolizje ze ścianami i zombiakami - jeśli kolizja, nie ruszaj się
-        if not self.sprawdz_kolizje_sciany(self.gracz, nowa_x, nowa_y) and not self.sprawdz_kolizje_z_zombiakami(nowa_x, nowa_y):
-            self.gracz.x = nowa_x
-            self.gracz.y = nowa_y
+        # Sprawdź kolizję z drzwiami (stare schody)
+        for drzwi in self.drzwi:
+            if self.gracz.koliduje_z(drzwi.rect) and len(self.zombiaki) == 0:
+                # Przejdź na następny poziom
+                self.pietro = drzwi.cel_pietro
+                self.generuj_poziom()
+                return "gra"
         
         # Aktualizuj kamerę
         self.kamera.aktualizuj(self.gracz)
-        
-        # Odkryj obszar wokół gracza
-        self.odkryj_obszar(self.gracz.x, self.gracz.y)
-        
-        # Sprawdź drzwi
-        self.sprawdz_drzwi()
         
         # Zmiana broni
         if klawisze[pygame.K_1]:
@@ -782,6 +940,30 @@ class Gra:
             if (0 <= ekran_x <= SZEROKOSC and 0 <= ekran_y <= WYSOKOSC):
                 pygame.draw.circle(ekran, ZOLTY, (int(ekran_x), int(ekran_y)), pocisk.promien)
             
+        # Rysuj schody (zawsze dostępne)
+        if self.schody:
+            ekran_x = self.schody.x - self.kamera.x
+            ekran_y = self.schody.y - self.kamera.y
+            
+            if (-self.schody.szerokosc <= ekran_x <= SZEROKOSC and -self.schody.wysokosc <= ekran_y <= WYSOKOSC):
+                kafelek_x = self.schody.x // ROZMIAR_KAFELKA
+                kafelek_y = self.schody.y // ROZMIAR_KAFELKA
+                if (kafelek_x, kafelek_y) in self.odkryte_obszary:
+                    # Rysuj schody na pozycji względem kamery
+                    pygame.draw.rect(ekran, (128, 128, 128), 
+                                   (ekran_x, ekran_y, self.schody.szerokosc, self.schody.wysokosc))
+                    # Linie schodów
+                    for i in range(0, self.schody.wysokosc, 8):
+                        pygame.draw.line(ekran, (100, 100, 100), 
+                                       (ekran_x, ekran_y + i), 
+                                       (ekran_x + self.schody.szerokosc, ekran_y + i), 2)
+                    # Napis "SCHODY"
+                    font = pygame.font.Font(None, 20)
+                    tekst = font.render("SCHODY", True, (255, 255, 255))
+                    tekst_rect = tekst.get_rect(center=(ekran_x + self.schody.szerokosc//2, 
+                                                       ekran_y + self.schody.wysokosc//2))
+                    ekran.blit(tekst, tekst_rect)
+        
         # Rysuj apteczki (tylko w odkrytych obszarach)
         for apteczka in self.apteczki:
             ekran_x = apteczka.x - self.kamera.x
@@ -825,10 +1007,15 @@ class Gra:
             "Mysz - celowanie i strzał",
             "Spacja - atak mieczem",
             "1 - pistolet, 2 - miecz",
-            "Pokonaj wszystkie zombiaki!",
-            "Znajdź schody (szare) na dół",
+            "E - użyj schodów",
+            "Znajdź schody i zejdź na dół!",
             "R - restart"
         ]
+        
+        # Jeśli gracz jest przy schodach, pokaż podpowiedź
+        if self.schody and self.gracz.koliduje_z(self.schody.rect):
+            podpowiedz = self.font.render("Wciśnij [E] żeby zejść schodami!", True, ZOLTY)
+            ekran.blit(podpowiedz, (SZEROKOSC//2 - 150, WYSOKOSC//2 - 100))
         
         for i, instrukcja in enumerate(instrukcje):
             tekst = self.maly_font.render(instrukcja, True, BIALY)
